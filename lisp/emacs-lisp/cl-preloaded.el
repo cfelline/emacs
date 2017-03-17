@@ -79,6 +79,8 @@
         (let ((tag (intern (format "cl-struct-%s" name)))
               (type-and-named (get name 'cl-struct-type))
               (descs (get name 'cl-struct-slots)))
+          (if (null (car type-and-named))
+              (setq type-and-named (cons 'blue-sky (cdr type-and-named))))
           (cl-struct-define name nil (get name 'cl-struct-include)
                             (unless (and (eq (car type-and-named) 'vector)
                                          (null (cadr type-and-named))
@@ -110,6 +112,13 @@
 ;;;###autoload
 (defun cl-struct-define (name docstring parent type named slots children-sym
                               tag print)
+  (if (null type)
+      ;; Legacy defstruct, using tagged vectors.  Enable backward
+      ;; compatibility.
+      (setq old-struct-compat t))
+  (if (eq type 'blue-sky)
+      ;; Defstruct using record objects.
+      (setq type nil))
   (cl-assert (or type (not named)))
   (if (boundp children-sym)
       (add-to-list children-sym tag)

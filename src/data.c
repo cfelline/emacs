@@ -201,6 +201,29 @@ DEFUN ("null", Fnull, Snull, 1, 1, 0,
   return Qnil;
 }
 
+static const char old_struct_prefix[] = "cl-struct-";
+
+static int
+vector_struct_p (Lisp_Object object)
+{
+  if (! old_struct_compat || ASIZE (object) < 1)
+    return false;
+
+  Lisp_Object type = AREF (object, 0);
+  return SYMBOLP (type)
+    && strncmp (SDATA (SYMBOL_NAME (type)),
+		old_struct_prefix,
+		sizeof old_struct_prefix - 1) == 0;
+}
+
+static Lisp_Object
+type_of_vector (Lisp_Object object)
+{
+  if (vector_struct_p (object))
+    return AREF (object, 0);
+  return Qvector;
+}
+
 DEFUN ("type-of", Ftype_of, Stype_of, 1, 1, 0,
        doc: /* Return a symbol representing the type of OBJECT.
 The symbol returned names the object's basic type;
@@ -243,7 +266,7 @@ for example, (type-of 1) returns `integer'.  */)
     case Lisp_Vectorlike:
       switch (PSEUDOVECTOR_TYPE (XVECTOR (object)))
         {
-        case PVEC_NORMAL_VECTOR: return Qvector;
+        case PVEC_NORMAL_VECTOR: return type_of_vector (object);
         case PVEC_WINDOW_CONFIGURATION: return Qwindow_configuration;
         case PVEC_PROCESS: return Qprocess;
         case PVEC_WINDOW: return Qwindow;
@@ -3872,6 +3895,12 @@ syms_of_data (void)
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
   make_symbol_constant (intern_c_string ("most-negative-fixnum"));
+
+  DEFVAR_BOOL ("old-struct-compat", old_struct_compat,
+	       doc: /* Non-nil means try to be compatible with old structs.
+If a vector has a symbol in its first slot, and that symbol has a prefix
+`cl-struct-', `type-of' will return that symbol as the type of the vector.  */);
+  old_struct_compat = false;
 
   DEFSYM (Qwatchers, "watchers");
   DEFSYM (Qmakunbound, "makunbound");
