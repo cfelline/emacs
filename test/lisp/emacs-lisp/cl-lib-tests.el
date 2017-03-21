@@ -493,4 +493,17 @@
   (should (cl-typep '* 'cl-lib-test-type))
   (should-not (cl-typep 1 'cl-lib-test-type)))
 
+(ert-deftest cl-lib-defstruct-record ()
+  (cl-defstruct foo x)
+  (let ((x (make-foo :x 42)))
+    (should (recordp x))
+    (should (eq (type-of x) 'foo))
+    (should (eql (foo-x x) 42))))
+
+(ert-deftest cl-lib-old-struct ()
+  (let ((old-struct-compat nil))
+    (cl-struct-define 'foo "" 'cl-structure-object nil nil nil
+                      'cl-struct-foo-tags 'cl-struct-foo t)
+    (should old-struct-compat)))
+
 ;;; cl-lib.el ends here

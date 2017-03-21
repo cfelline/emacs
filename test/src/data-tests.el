@@ -480,3 +480,11 @@ comparing the subr with a much slower lisp implementation."
       (remove-variable-watcher 'data-tests-lvar collect-watch-data)
       (setq data-tests-lvar 6)
       (should (null watch-data)))))
+
+(ert-deftest old-struct ()
+  (let ((x [cl-struct-foo]))
+    (let ((old-struct-compat nil))
+      (should (eq (type-of x) 'vector)))
+    (let ((old-struct-compat t))
+      (should (eq (type-of x) 'cl-struct-foo))
+      (should (eq (type-of [foo]) 'vector)))))
