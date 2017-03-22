@@ -119,7 +119,7 @@ URL can be a URL string, or a URL record of the type returned by
 `url-generic-parse-url'."
   (if (stringp url)
       (setq url (url-generic-parse-url (url-unhex-string url)))
-    (if (not (recordp url))
+    (if (not (url-p url))
         (error "Argument is not a valid URL")))
   (with-current-buffer (generate-new-buffer " *url-ldap*")
     (setq url-current-object url)
